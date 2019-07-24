@@ -1,0 +1,140 @@
+service: crm-theam-serverless-api
+
+provider:
+  name: aws
+  runtime: nodejs10.x
+  stage: dev
+  region: eu-west-2
+
+# you can define service wide environment variables here
+#  environment:
+#    variable1: value1
+
+# you can add packaging information here
+#package:
+#  include:
+#    - include-me.js
+#    - include-me-dir/**
+#  exclude:
+#    - exclude-me.js
+#    - exclude-me-dir/**
+
+functions:
+  login:
+    handler: auth/login.handler
+    events:
+      - http:
+          path: login
+          method: POST
+
+  getAllUsers:
+    handler: users/getAllUsers.handler
+    events:
+      - http:
+          path: users
+          method: GET
+
+  getUsersById:
+    handler: users/getUserById.handler
+    events:
+      - http:
+          path: users/{id}
+          method: GET
+          request:
+            parameters:
+              paths:
+                id: true
+
+  newUser:
+    handler: users/newUser.handler
+    events:
+      - http:
+          path: users
+          method: POST
+
+  updateUser:
+    handler: users/updateUser.handler
+    events:
+      - http:
+          path: users/{id}
+          method: PUT
+          request:
+            parameters:
+              paths:
+                id: true
+
+  getAllCustomers:
+    handler: users/getAllCustomers.handler
+    events:
+      - http:
+          path: customers
+          method: GET
+
+  getCustomersById:
+    handler: customers/getCustomersById.handler
+    events:
+      - http:
+          path: customers/{id}
+          method: GET
+          request:
+            parameters:
+              paths:
+                id: true
+
+  newCustomer:
+    handler: customers/newCustomer.handler
+    events:
+      - http:
+          path: customers
+          method: POST
+
+  updateCustomer:
+    handler: customers/updateCustomer.handler
+    events:
+      - http:
+          path: customers/{id}
+          method: PUT
+          request:
+            parameters:
+              paths:
+                id: true
+
+  deleteCustomer:
+    handler: customers/deleteCustomer.handler
+    events:
+      - http:
+          path: customers/{id}
+          method: DELETE
+          request:
+            parameters:
+              paths:
+                id: true
+
+#    Define function environment variables here
+#    environment:
+#      variable2: value2
+
+# you can add CloudFormation resource templates here
+#resources:
+#  Resources:
+#    uploadBucket:
+#      Type: AWS::S3::Bucket
+#      Properties:
+#        BucketName: ${self:service}-${self:provider.stage}-profileimages
+#    customerTable:
+#      Type: AWS::DynamoDB::Table
+#      Properties:
+#        TableName: ${self:service}-${self:provider.stage}-customers
+#        AttributeDefinitions:
+#          - AttributeName: userId
+#            AttributeType: S
+#        KeySchema:
+#          - AttributeName: userId
+#            KeyType: HASH
+#        ProvisionedThroughput:
+#          ReadCapacityUnits: 1
+#          WriteCapacityUnits: 1
+#  Outputs:
+#     NewOutput:
+#       Description: "Description for the output"
+#       Value: "Some output value"
