@@ -5,6 +5,24 @@ provider:
   runtime: nodejs10.x
   stage: dev
   region: eu-west-2
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+      Resource:
+        - { "Fn::GetAtt": ["customerTable", "Arn" ] }
+    - Effect: Allow
+      Action:
+        - s3:PutObject
+        - s3:GetObject
+        - s3:DeleteObject
+      Resource:
+        - { "Fn::GetAtt": ["uploadBucket", "Arn" ] }
 
 # you can define service wide environment variables here
 #  environment:
@@ -22,6 +40,7 @@ provider:
 functions:
   login:
     handler: auth/login.handler
+    memorySize: 128
     events:
       - http:
           path: login
@@ -29,6 +48,7 @@ functions:
 
   getAllUsers:
     handler: users/getAllUsers.handler
+    memorySize: 128
     events:
       - http:
           path: users
@@ -36,6 +56,7 @@ functions:
 
   getUsersById:
     handler: users/getUserById.handler
+    memorySize: 128
     events:
       - http:
           path: users/{id}
@@ -47,6 +68,7 @@ functions:
 
   newUser:
     handler: users/newUser.handler
+    memorySize: 128
     events:
       - http:
           path: users
@@ -54,6 +76,7 @@ functions:
 
   updateUser:
     handler: users/updateUser.handler
+    memorySize: 128
     events:
       - http:
           path: users/{id}
@@ -64,7 +87,8 @@ functions:
                 id: true
 
   getAllCustomers:
-    handler: users/getAllCustomers.handler
+    handler: customers/getAllCustomers.handler
+    memorySize: 128
     events:
       - http:
           path: customers
@@ -72,6 +96,7 @@ functions:
 
   getCustomersById:
     handler: customers/getCustomersById.handler
+    memorySize: 128
     events:
       - http:
           path: customers/{id}
@@ -83,13 +108,15 @@ functions:
 
   newCustomer:
     handler: customers/newCustomer.handler
+    memorySize: 128
     events:
       - http:
-          path: customers
+          path: customers/{id}
           method: POST
 
   updateCustomer:
     handler: customers/updateCustomer.handler
+    memorySize: 128
     events:
       - http:
           path: customers/{id}
@@ -101,6 +128,7 @@ functions:
 
   deleteCustomer:
     handler: customers/deleteCustomer.handler
+    memorySize: 128
     events:
       - http:
           path: customers/{id}
@@ -115,25 +143,25 @@ functions:
 #      variable2: value2
 
 # you can add CloudFormation resource templates here
-#resources:
-#  Resources:
-#    uploadBucket:
-#      Type: AWS::S3::Bucket
-#      Properties:
-#        BucketName: ${self:service}-${self:provider.stage}-profileimages
-#    customerTable:
-#      Type: AWS::DynamoDB::Table
-#      Properties:
-#        TableName: ${self:service}-${self:provider.stage}-customers
-#        AttributeDefinitions:
-#          - AttributeName: userId
-#            AttributeType: S
-#        KeySchema:
-#          - AttributeName: userId
-#            KeyType: HASH
-#        ProvisionedThroughput:
-#          ReadCapacityUnits: 1
-#          WriteCapacityUnits: 1
+resources:
+  Resources:
+    uploadBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: customerprofileimages
+    customerTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: customers
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
 #  Outputs:
 #     NewOutput:
 #       Description: "Description for the output"
