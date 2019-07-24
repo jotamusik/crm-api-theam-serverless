@@ -111,7 +111,7 @@ functions:
     memorySize: 128
     events:
       - http:
-          path: customers/{id}
+          path: customers
           method: POST
 
   updateCustomer:
