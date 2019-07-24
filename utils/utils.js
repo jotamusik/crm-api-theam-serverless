@@ -4,7 +4,7 @@ module.exports = {
   setupResponse
 };
 
-function setupResponse(statusCode, body) {
+function setupResponse(statusCode, body = {}) {
   return {
     statusCode: statusCode,
     headers: { },
