@@ -9,5 +9,7 @@
   },
   "author": "Jorge Aguiar Martin",
   "license": "ISC",
-  "dependencies": {}
+  "dependencies": {
+    "aws-sdk": "^2.498.0"
+  }
 }
