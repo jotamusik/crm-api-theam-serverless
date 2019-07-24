@@ -95,7 +95,7 @@ functions:
           method: GET
 
   getCustomersById:
-    handler: customers/getCustomersById.handler
+    handler: customers/getCustomerById.handler
     memorySize: 128
     events:
       - http:
