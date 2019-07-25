@@ -13,45 +13,34 @@ module.exports.handler = async event => {
   return new Promise(( resolve, reject ) => {
 
     if ( !event.pathParameters.id ) {
-      reject(Utils.setupResponse(400, { message: "Bad Request" }));
+      resolve(Utils.setupResponse(400, { message: "Bad Request" }));
     }
 
     const requestBody = JSON.parse(event.body);
 
     if ( requestBodyNotContainsNeededData(requestBody) ) {
-      reject(Utils.setupResponse(400, { message: 'Bad Request' }));
+      resolve(Utils.setupResponse(400, { message: 'Bad Request' }));
     }
 
-    let getParams = {
+    let params = {
       TableName: 'customers',
       Key: {
         customerId: event.pathParameters.id.toString()
-      }
+      },
+      UpdateExpression: 'SET customerName = :customerName, customerSurname = :customerSurname',
+      ConditionExpression: 'customerId = :customerId and (customerName <> :customerName or customerSurname <> :customerSurname)',
+      ExpressionAttributeValues: {
+        ':customerId': event.pathParameters.id.toString(),
+        ':customerName' : requestBody.customerName,
+        ':customerSurname': requestBody.customerSurname
+      },
+      ReturnValues: "ALL_NEW"
     };
 
-    docClient.get(getParams).promise()
-      .then(( data ) => {
-        console.log("DATA");
-        console.log(data);
-        if ( !data.Item ) {
-          console.log("THERE IS NO ITEM");
-          reject(Utils.setupResponse(400, { message: 'Bad Request' }));
-        }
-        let putParams = {
-          Item: {
-            customerId: event.pathParameters.id.toString(),
-            customerName: requestBody.customerName,
-            customerSurname: requestBody.customerSurname
-          },
-          TableName: "customers",
-          ReturnValues: 'NONE'
-        };
-
-        docClient.put(putParams).promise()
-          .then(() => resolve(Utils.setupResponse(200)))
-          .catch(error => reject(Utils.setupResponse(500, error)));
-
-      })
-      .catch(error => reject(Utils.setupResponse(500, error)));
+    docClient.update(params).promise()
+      .then(() => resolve(Utils.setupResponse(200)))
+      .catch(error => {
+        reject(error)
+      });
   });
 };
