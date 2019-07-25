@@ -3,39 +3,26 @@
 const Utils = require('../utils/utils');
 const uuidv4 = require('uuid/v4');
 const AWS = require('aws-sdk');
-const docClient = new AWS.DynamoDB.DocumentClient({region: 'eu-west-2'});
+const docClient = new AWS.DynamoDB.DocumentClient({ region: 'eu-west-2' });
 
 module.exports.handler = async event => {
 
-  return new Promise((resolve, reject) => {
+  return new Promise(( resolve, reject ) => {
 
-    let requestBody = JSON.parse(event.body);
-    console.log('event');
-    console.log(event);
-
-    console.log('requestBody');
-    console.log(requestBody);
+    const requestBody = JSON.parse(event.body);
 
     let params = {
       Item: {
-        id: uuidv4().toString(),
-        name: requestBody.name,
-        surname: requestBody.surname
+        customerId: uuidv4().toString(),
+        customerName: requestBody.customerName,
+        customerSurname: requestBody.customerSurname
       },
       TableName: "customers",
       ReturnValues: 'NONE'
     };
 
     docClient.put(params).promise()
-      .then((data) => {
-        console.log('DATA');
-        console.log(data);
-        resolve(Utils.setupResponse(200));
-      })
-      .catch(error => {
-        console.log('ERROR');
-        console.log(error);
-        reject(Utils.setupResponse(500, error));
-      });
+      .then(() => resolve(Utils.setupResponse(200)))
+      .catch(error => reject(Utils.setupResponse(500, error)));
   });
 };

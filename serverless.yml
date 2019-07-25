@@ -154,10 +154,10 @@ resources:
       Properties:
         TableName: customers
         AttributeDefinitions:
-          - AttributeName: id
+          - AttributeName: customerId
             AttributeType: S
         KeySchema:
-          - AttributeName: id
+          - AttributeName: customerId
             KeyType: HASH
         ProvisionedThroughput:
           ReadCapacityUnits: 1
