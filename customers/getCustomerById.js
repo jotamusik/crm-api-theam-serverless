@@ -9,7 +9,7 @@ module.exports.handler = async event => {
   return new Promise(( resolve, reject ) => {
 
     if ( !event.pathParameters.id ) {
-      reject(Utils.setupResponse(400, { message: "Bad Request" }));
+      resolve(Utils.setupResponse(400, { message: "Bad Request" }));
     }
 
     let params = {
@@ -21,6 +21,6 @@ module.exports.handler = async event => {
 
     docClient.get(params).promise()
       .then(( data ) => resolve(Utils.setupResponse(200, data.Item)))
-      .catch(error => reject(Utils.setupResponse(500, error)));
+      .catch(error => reject(error));
   });
 };

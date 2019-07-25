@@ -23,6 +23,6 @@ module.exports.handler = async event => {
 
     docClient.put(params).promise()
       .then(() => resolve(Utils.setupResponse(200)))
-      .catch(error => reject(Utils.setupResponse(500, error)));
+      .catch(error => reject(error));
   });
 };
