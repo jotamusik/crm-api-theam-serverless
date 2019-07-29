@@ -8,19 +8,25 @@ function requestBodyNotContainsNeededData( requestBody ) {
   return requestBody.customerName ? !requestBody.customerSurname : true;
 }
 
+function checkEventInputData( event, resolve ) {
+  const requestBody = JSON.parse(event.body);
+
+  if ( !event.pathParameters.id ) {
+    resolve(Utils.setupResponse(400, { message: "Bad Request" }));
+  }
+
+  if ( requestBodyNotContainsNeededData(requestBody) ) {
+    resolve(Utils.setupResponse(400, { message: 'Bad Request' }));
+  }
+}
+
 module.exports.handler = async event => {
 
   return new Promise(( resolve, reject ) => {
 
-    if ( !event.pathParameters.id ) {
-      resolve(Utils.setupResponse(400, { message: "Bad Request" }));
-    }
+    checkEventInputData(event, resolve);
 
     const requestBody = JSON.parse(event.body);
-
-    if ( requestBodyNotContainsNeededData(requestBody) ) {
-      resolve(Utils.setupResponse(400, { message: 'Bad Request' }));
-    }
 
     let params = {
       TableName: 'customers',
