@@ -2,13 +2,14 @@
 
 const Utils = require('../utils/utils');
 const AWS = require('aws-sdk');
+const _ = require('lodash/lang');
 const docClient = new AWS.DynamoDB.DocumentClient({ region: 'eu-west-2' });
 
 module.exports.handler = async event => {
 
   return new Promise(( resolve, reject ) => {
 
-    if ( !event.pathParameters.id ) {
+    if ( _.isNil(event.pathParameter.id) ) {
       resolve(Utils.setupResponse(400, { message: "Bad Request" }));
     }
 

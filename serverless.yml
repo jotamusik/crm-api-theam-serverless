@@ -18,11 +18,8 @@ provider:
         - { "Fn::GetAtt": ["customerTable", "Arn" ] }
     - Effect: Allow
       Action:
-        - s3:PutObject
-        - s3:GetObject
-        - s3:DeleteObject
-      Resource:
-        - { "Fn::GetAtt": ["uploadBucket", "Arn" ] }
+        - s3:*
+      Resource: { "Fn::Join": ["", ["arn:aws:s3:::customerprofileimages", "/*" ] ] }
 
 # you can define service wide environment variables here
 #  environment:
@@ -162,7 +159,20 @@ resources:
         ProvisionedThroughput:
           ReadCapacityUnits: 1
           WriteCapacityUnits: 1
-#  Outputs:
-#     NewOutput:
-#       Description: "Description for the output"
-#       Value: "Some output value"
+    userPool:
+      Type: AWS::Cognito::UserPool
+      Properties:
+        UserPoolName: user-pool
+        UsernameAttributes:
+          - email
+        AutoVerifiedAttributes:
+          - email
+    userPoolClient:
+      Type: AWS::Cognito::UserPoolClient
+      Properties:
+        ClientName: user-pool-client
+        UserPoolId:
+          Ref: userPool
+        ExplicitAuthFlows:
+          - ADMIN_NO_SRP_AUTH
+        GenerateSecret: false
