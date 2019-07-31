@@ -135,6 +135,20 @@ functions:
               paths:
                 id: true
 
+  getCustomerProfileImage:
+    handler: customers/getProfileImageUrl.handler
+    memorySize: 128
+    events:
+      - http:
+          path: customers/{id}/imageUrl
+          method: GET
+          request:
+            parameters:
+              paths:
+                id: true
+              querystrings:
+                operation: false
+
 #    Define function environment variables here
 #    environment:
 #      variable2: value2
