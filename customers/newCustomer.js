@@ -4,7 +4,7 @@ const Utils = require('../utils/utils');
 const uuidv4 = require('uuid/v4');
 const AWS = require('aws-sdk');
 const docClient = new AWS.DynamoDB.DocumentClient({ region: 'eu-west-2' });
-const s3 = new AWS.S3();
+const _ = require('lodash/lang');
 
 
 function requestBodyNotContainsNeededData( requestBody ) {
@@ -29,6 +29,7 @@ module.exports.handler = async event => {
     const requestBody = JSON.parse(event.body);
 
     let generatedCustomerId = uuidv4();
+
     let params = {
       Item: {
         customerId: generatedCustomerId.toString(),
@@ -40,17 +41,7 @@ module.exports.handler = async event => {
     };
 
     docClient.put(params).promise()
-      .then(() => {
-
-        const bucketParams = {
-          Bucket: 'customerprofileimages',
-          Key: 'api/uploads/customerProfiles/' + generatedCustomerId,
-          Expires: 200
-        };
-
-        const url = s3.getSignedUrl('putObject', bucketParams);
-        resolve(Utils.setupResponse(200, { 'signedUrl': url }));
-      })
+      .then(() => resolve(Utils.setupResponse(200)))    // ToDo: Send the created customer ?
       .catch(error => reject(error));
   });
 };
