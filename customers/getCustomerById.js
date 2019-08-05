@@ -25,7 +25,12 @@ module.exports.handler = async event => {
     };
 
     docClient.get(params).promise()
-      .then(( dbData ) => resolve(Utils.setupResponse(200, dbData.Item)))
+      .then(( dbData ) => {
+        if ( _.isNil(dbData.Item) ) {
+          resolve(Utils.setupResponse(404, { message: 'Resource Not Found' }));
+        }
+        resolve(Utils.setupResponse(200, dbData.Item))
+      })
       .catch(error => reject(error));
   });
 };

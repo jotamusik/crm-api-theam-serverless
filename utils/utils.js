@@ -4,10 +4,10 @@ module.exports = {
   setupResponse
 };
 
-function setupResponse( statusCode, body = {} ) {
+function setupResponse( statusCode, body = {}, headers = {} ) {
   return {
     statusCode: statusCode,
-    headers: {},
+    headers: headers,
     body: JSON.stringify(body)
   }
 }

@@ -12,8 +12,6 @@ function inputDataIsNotValid( event ) {
 
 module.exports.handler = async event => {
 
-  console.log(event);
-
   return new Promise(( resolve, reject ) => {
 
     if ( inputDataIsNotValid(event) ) {
