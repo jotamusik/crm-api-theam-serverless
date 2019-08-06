@@ -12,7 +12,7 @@ module.exports.handler = async () => {
 
   return new Promise(( resolve, reject ) => {
     docClient.scan(params).promise()
-      .then(data => resolve(Utils.setupResponse(200, data)))
+      .then(data => resolve(Utils.Ok(data)))
       .catch(error => reject(error));
   });
 };

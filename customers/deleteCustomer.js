@@ -14,7 +14,7 @@ module.exports.handler = async event => {
   return new Promise(( resolve, reject ) => {
 
     if ( inputDataIsNotValid(event) ) {
-      resolve(Utils.setupResponse(400, { message: "Bad Request" }));
+      resolve(Utils.BadRequest());
     }
 
     let params = {
@@ -25,7 +25,7 @@ module.exports.handler = async event => {
     };
 
     docClient.delete(params).promise()
-      .then(() => resolve(Utils.setupResponse(200)))
+      .then(() => resolve(Utils.Ok()))
       .catch(error => reject(error));
   });
 };

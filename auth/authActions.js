@@ -7,7 +7,7 @@ const _ = require('lodash/lang');
 
 function requestBodyNotContainsNeededData( requestBody ) {
 
-  return _.isNil(requestBody.username) || _.isNil(requestBody.password);
+  return _.isNil(requestBody.action) || _.isNil(requestBody.session) || _.isNil(requestBody.challengeResponses);
 }
 
 function checkEventInputData( event, resolve ) {
@@ -27,17 +27,14 @@ module.exports.handler = async event => {
 
     let params = {
       ClientId: '351sd83rj8pff8nuqbtjc69n3t',
-      AuthFlow: 'ADMIN_NO_SRP_AUTH',
+      ChallengeName: requestBody.action,
       UserPoolId: 'eu-west-2_TithjXJyJ',
-      AuthParameters: {
-        'USERNAME': requestBody.username,
-        'PASSWORD': requestBody.password
-      }
+      ChallengeResponses: requestBody.challengeResponses,
+      Session: requestBody.session
     };
 
-    Cognito.adminInitiateAuth(params).promise()
+    Cognito.adminRespondToAuthChallenge(params).promise()
       .then(data => {
-
         if ( _.isNil(data.ChallengeName) ) {
           let headers = {
             Authorization: data.AuthenticationResult.IdToken
@@ -52,9 +49,6 @@ module.exports.handler = async event => {
           resolve(Utils.Ok(body));
         }
       })
-      .catch(error => {
-        console.log(error);
-        resolve(Utils.Unauthorized());
-      });
+      .catch(error => reject(error));
   });
 };

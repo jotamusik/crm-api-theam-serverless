@@ -16,7 +16,7 @@ function checkEventInputData( event, resolve ) {
   const requestBody = JSON.parse(event.body);
 
   if ( requestBodyNotContainsNeededData(requestBody) ) {
-    resolve(Utils.setupResponse(400, { message: 'Bad Request' }));
+    resolve(Utils.BadRequest());
   }
 }
 
@@ -41,7 +41,7 @@ module.exports.handler = async event => {
     };
 
     docClient.put(params).promise()
-      .then(() => resolve(Utils.setupResponse(200)))    // ToDo: Send the created customer ?
+      .then(() => resolve(Utils.Ok()))    // ToDo: Send the created customer ?
       .catch(error => reject(error));
   });
 };

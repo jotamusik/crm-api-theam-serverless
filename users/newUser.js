@@ -13,20 +13,15 @@ function checkEventInputData( event, resolve ) {
   const requestBody = JSON.parse(event.body);
 
   if ( requestBodyNotContainsNeededData(requestBody) ) {
-    resolve(Utils.setupResponse(400, { message: 'Bad Request' }));
+    resolve(Utils.BadRequest());
   }
-}
-
-function callerHasNotAdminAccess( event ) {
-  const groups = event.requestContext.authorizer.claims['cognito:groups'].split(',');
-  return groups.includes('admins');
 }
 
 
 module.exports.handler = async event => {
   return new Promise(( resolve, reject ) => {
-    if ( callerHasNotAdminAccess(event) ) {
-      resolve(Utils.setupResponse(401, { message: 'Unauthorized' }));
+    if ( Utils.callerHasNotAdminAccess(event) ) {
+      resolve(Utils.Unauthorized());
     }
 
     checkEventInputData(event, resolve);
@@ -52,11 +47,15 @@ module.exports.handler = async event => {
 
                 addToGroupParams.GroupName = 'admins';
                 Cognito.adminAddUserToGroup(addToGroupParams).promise()
-                  .then(() => resolve(Utils.setupResponse(200)))
+                  .then(() => resolve(Utils.Ok()))
                   .catch(error => reject(error));
               }
-            } else {
-              resolve(Utils.setupResponse(200));
+              else {
+                resolve(Utils.Ok());
+              }
+            }
+            else {
+              resolve(Utils.Ok());
             }
           })
           .catch(error => reject(error));

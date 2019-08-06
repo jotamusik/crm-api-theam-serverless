@@ -14,7 +14,7 @@ module.exports.handler = async event => {
   return new Promise(( resolve, reject ) => {
 
     if ( inputDataIsNotValid(event) ) {
-      resolve(Utils.setupResponse(400, { message: "Bad Request" }));
+      resolve(Utils.BadRequest());
     }
 
     let params = {
@@ -27,9 +27,9 @@ module.exports.handler = async event => {
     docClient.get(params).promise()
       .then(( dbData ) => {
         if ( _.isNil(dbData.Item) ) {
-          resolve(Utils.setupResponse(404, { message: 'Resource Not Found' }));
+          resolve(Utils.ResourceNotFound());
         }
-        resolve(Utils.setupResponse(200, dbData.Item))
+        resolve(Utils.Ok(dbData.Item))
       })
       .catch(error => reject(error));
   });

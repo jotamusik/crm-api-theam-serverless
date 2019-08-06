@@ -48,6 +48,14 @@ functions:
           path: login
           method: POST
 
+  authActions:
+    handler: auth/authActions.handler
+    memorySize: 128
+    events:
+      - http:
+          path: auth/requiredAction
+          method: POST
+
   getAllUsers:
     handler: users/getAllUsers.handler
     memorySize: 128
@@ -55,6 +63,10 @@ functions:
       - http:
           path: users
           method: GET
+          authorizer:
+            type: COGNITO_USER_POOLS
+            authorizerId:
+              Ref: apiGatewayAuthorizer
 
   getUsersById:
     handler: users/getUserById.handler
@@ -67,6 +79,10 @@ functions:
             parameters:
               paths:
                 id: true
+          authorizer:
+            type: COGNITO_USER_POOLS
+            authorizerId:
+              Ref: apiGatewayAuthorizer
 
   newUser:
     handler: users/newUser.handler
@@ -75,6 +91,10 @@ functions:
       - http:
           path: users
           method: POST
+          authorizer:
+            type: COGNITO_USER_POOLS
+            authorizerId:
+              Ref: apiGatewayAuthorizer
 
   updateUser:
     handler: users/updateUser.handler
@@ -87,7 +107,10 @@ functions:
             parameters:
               paths:
                 id: true
-
+          authorizer:
+            type: COGNITO_USER_POOLS
+            authorizerId:
+              Ref: apiGatewayAuthorizer
 
   getAllCustomers:
     handler: customers/getAllCustomers.handler

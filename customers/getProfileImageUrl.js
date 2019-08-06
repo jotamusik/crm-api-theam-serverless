@@ -15,7 +15,7 @@ module.exports.handler = async event => {
   return new Promise(( resolve, reject ) => {
 
     if ( inputDataIsNotValid(event) ) {
-      resolve(Utils.setupResponse(400, { message: "Bad Request" }));
+      resolve(Utils.BadRequest());
     }
 
     const customerId = event.pathParameters.id;
@@ -31,15 +31,15 @@ module.exports.handler = async event => {
         .then(() => {
           s3Params.Expires = 3600;
           let profileImage = s3.getSignedUrl(operation, s3Params);
-          resolve(Utils.setupResponse(200, { profileImageUrl: profileImage }));
+          resolve(Utils.Ok({ profileImageUrl: profileImage }));
         })
-        .catch(() => resolve(Utils.setupResponse(404, { message: 'Resource Not Found' })));
+        .catch(() => resolve(Utils.ResourceNotFound()));
     }
 
     if ( operation === 'putObject' ) {
       s3Params.Expires = 3600;
       let profileImage = s3.getSignedUrl(operation, s3Params);
-      resolve(Utils.setupResponse(200, { profileImageUrl: profileImage }));
+      resolve(Utils.Ok({ profileImageUrl: profileImage }));
     }
   });
 };

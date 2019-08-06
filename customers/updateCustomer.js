@@ -20,7 +20,7 @@ module.exports.handler = async event => {
   return new Promise(( resolve, reject ) => {
 
      if ( inputDataIsNotValid(event) ) {
-       resolve(Utils.setupResponse(400, { message: 'Bad Request' }));
+       resolve(Utils.BadRequest());
      }
 
     const requestBody = JSON.parse(event.body);
@@ -41,7 +41,7 @@ module.exports.handler = async event => {
     };
 
     docClient.update(params).promise()
-      .then(() => resolve(Utils.setupResponse(200)))
+      .then(() => resolve(Utils.Ok()))
       .catch(error => {
         reject(error)
       });
