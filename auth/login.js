@@ -40,7 +40,8 @@ module.exports.handler = async event => {
 
         if ( _.isNil(data.ChallengeName) ) {
           let headers = {
-            Authorization: data.AuthenticationResult.IdToken
+            Authorization: data.AuthenticationResult.IdToken,
+            CognitoAccessToken: data.AuthenticationResult.AccessToken
           };
           resolve(Utils.Ok({}, headers));
         } else {

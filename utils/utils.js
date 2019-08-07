@@ -24,8 +24,22 @@ function callerHasNotAdminAccess( event ) {
   return !groups.includes('admins');
 }
 
-const Unauthorized = () => Response(401, { message: 'Unauthorized' });
-const BadRequest = () => Response(400, { message: 'Bad request' });
-const ResourceNotFound = () => Response(404, { message: 'Resource not found' });
-const InternalServerError = () => Response(500, { message: 'Internal server error' });
-const Ok = (body = {}, headers = {}) => Response(200, body, headers);
+function Unauthorized() {
+  return Response(401, { message: 'Unauthorized' });
+}
+
+function BadRequest() {
+  return Response(400, { message: 'Bad request' });
+}
+
+function ResourceNotFound() {
+  return Response(404, { message: 'Resource not found' });
+}
+
+function InternalServerError() {
+  return Response(500, { message: 'Internal server error' });
+}
+
+function Ok( body = {}, headers = {} ) {
+  return Response(200, body, headers);
+}
