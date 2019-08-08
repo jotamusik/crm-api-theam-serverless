@@ -6,51 +6,60 @@ const Cognito = new AWS.CognitoIdentityServiceProvider();
 const _ = require('lodash/lang');
 
 function requestBodyContainsPassword( requestBody ) {
-  return !requestBodyNotContainsPassword(requestBody);
+  return !_.isNil(requestBody.password);
 }
 
 function requestBodyContainsGroups( requestBody ) {
-  return !requestBodyContainsGroups(requestBody);
+  return !_.isNil(requestBody.groups);
 }
 
-function requestBodyNotContainsPassword( requestBody ) {
-  return _.isNil(requestBody.password);
+function groupsIsNotEmpty( requestBody ) {
+  return requestBody.groups.length !== 0;
 }
 
-function requestBodyNotContainsGroups( requestBody ) {
-  return _.isNil(requestBody.groups);
+function userHasNotUpdateAccess( event, callerUser ) {
+  const requestedUserId = event.pathParameters.id;
+  return Utils.callerHasNotAdminAccess(event) && ( callerUser.Username !== requestedUserId );
 }
 
-function requestBodyNotContainsNeededData( requestBody ) {
-  return requestBodyNotContainsPassword(requestBody) && requestBodyNotContainsGroups(requestBody);
+function requestNotContainsCognitoAccessToken( event ) {
+  return _.isNil(event.headers.CognitoAccessToken);
 }
 
-function requestBodyDataIsNotValid( requestBody ) {
-  return requestBody.groups.length === 0;
+function requestNotContainsUserIdPathParameters( event ) {
+  return _.isNil(event.pathParameters.id);
 }
 
-function checkEventInputData( event, resolve ) {
-  const requestBody = JSON.parse(event.body);
-
-  if ( requestBodyNotContainsNeededData(requestBody) ) {
-    resolve(Utils.BadRequest());
-  }
-  if ( requestBodyDataIsNotValid(requestBody) ) {
-    resolve(Utils.BadRequest());
-  }
+function requestNotHasNecessaryData( event ) {
+  return requestNotContainsCognitoAccessToken(event) || requestNotContainsUserIdPathParameters(event);
 }
 
-function getUserInfo( accessToken ) {
+function getUser( AccessToken ) {
   return new Promise(( resolve, reject ) => {
     try {
-      Cognito.getUser({ AccessToken: accessToken }).promise()
+      Cognito.getUser({ AccessToken }).promise()
         .then(data => resolve(data))
-        .catch(error => {
-          console.log(error);
-          reject(error);
-        });
-    } catch ( exception ) {
-      throw new Error(`[getUserInfo] ${ exception.message }`);
+        .catch(error => reject(error));
+    }
+    catch ( exception ) {
+      throw new Error(`[getUserInfo] ${exception.message}`);
+    }
+  });
+}
+
+function getUserGroups(username) {
+  return new Promise(( resolve, reject ) => {
+    try {
+      let params = {
+        UserPoolId: 'eu-west-2_TithjXJyJ',
+        Username: username
+      };
+      Cognito.adminListGroupsForUser(params).promise()
+        .then(data => resolve(data.Groups))
+        .catch(error => reject(error));
+    }
+    catch ( exception ) {
+      throw new Error(`[getUserGroups] ${exception.message}`);
     }
   });
 }
@@ -58,30 +67,20 @@ function getUserInfo( accessToken ) {
 module.exports.handler = async event => {
   return new Promise(async ( resolve, reject ) => {
 
-    console.log(event);
-    let callerUser = await getUserInfo(event.headers.CognitoAccessToken);
-    console.log(callerUser);
-
-    if ( Utils.callerHasNotAdminAccess(event) ) {
-      resolve(Utils.Unauthorized());
+    if ( requestNotHasNecessaryData(event) ) {
+      resolve(Utils.BadRequest());
     }
 
-    checkEventInputData(event, resolve);
+    try {
+      let requestedUser = await getUser(event.headers.CognitoAccessToken);
+      requestedUser.Groups = await getUserGroups(event.pathParameters.id);
 
-    const requestBody = JSON.parse(event.body);
-    //
-    // if ( requestBodyContainsPassword(requestBody) ) {
-    //   let params = {
-    //     Password: requestBody.password, /* required */
-    //     UserPoolId: 'eu-west-2_TithjXJyJ', /* required */
-    //     Username: 'STRING_VALUE', /* required */
-    //     Permanent: true
-    //   };
-    //   Cognito.adminSetUserPassword();
-    // }
-    //
-    // if ( requestBodyContainsGroups(requestBody) ) {
-    //
-    // }
+      resolve(Utils.Ok(requestedUser));
+    }
+    catch ( exception ) {
+      reject(exception)
+    }
+
+
   });
 };

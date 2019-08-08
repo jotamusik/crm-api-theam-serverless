@@ -3,6 +3,7 @@
 module.exports = {
   Response,
   callerHasNotAdminAccess,
+  callerHasAdminAccess,
   Unauthorized,
   BadRequest,
   InternalServerError,
@@ -18,10 +19,13 @@ function Response( statusCode, body = {}, headers = {} ) {
   }
 }
 
-function callerHasNotAdminAccess( event ) {
+function callerHasAdminAccess( event ) {
   const groups = event.requestContext.authorizer.claims['cognito:groups'].split(',');
-  console.log(groups);
-  return !groups.includes('admins');
+  return groups.includes('admins');
+}
+
+function callerHasNotAdminAccess( event ) {
+  return !callerHasAdminAccess(event);
 }
 
 function Unauthorized() {
