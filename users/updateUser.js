@@ -47,15 +47,19 @@ function getGroupsToAdd( actualGroups, requestedGroups ) {
   return requestedGroups.filter(group => !actualGroups.includes(group));
 }
 
-function getUserByAccessToken( AccessToken ) {
+function getUserByUsername( username ) {
   return new Promise(( resolve, reject ) => {
     try {
-      Cognito.getUser({ AccessToken }).promise()
+      let params = {
+        UserPoolId: 'eu-west-2_TithjXJyJ',
+        Username: username
+      };
+      Cognito.adminGetUser(params).promise()
         .then(data => resolve(data))
         .catch(error => reject(error));
     }
     catch ( exception ) {
-      throw new Error(`[getUserByAccessToken] ${exception.message}`);
+      throw new Error(`[getUserByUsername] ${exception.message}`);
     }
   });
 }
@@ -158,10 +162,11 @@ module.exports.handler = async event => {
 
     const requestBody = JSON.parse(event.body);
     const requestedUserUsername = event.pathParameters.id;
+    const callerUsername = event.requestContext.authorizer.claims['cognito:username'];
 
     try {
 
-      let callerUser = await getUserByAccessToken(event.headers.CognitoAccessToken);
+      let callerUser = await getUserByUsername(callerUsername);
 
       if ( callerUserCanChangeThePassword(callerUser, event) && requestBodyContainsPassword(requestBody) ) {
         changeUserPassword(requestedUserUsername, requestBody.password);
