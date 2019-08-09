@@ -23,16 +23,12 @@ function groupsIsNotEmpty( requestBody ) {
   return requestBody.groups.length !== 0;
 }
 
-function requestNotContainsCognitoAccessToken( event ) {
-  return _.isNil(event.headers.CognitoAccessToken);
+function requestBodyIsEmpty( requestBody ) {
+  return !requestBodyContainsGroups(requestBody) && !requestBodyContainsPassword(requestBody);
 }
 
 function requestNotContainsUserIdPathParameter( event ) {
   return _.isNil(event.pathParameters.id);
-}
-
-function requestNotHasNecessaryData( event ) {
-  return requestNotContainsCognitoAccessToken(event) || requestNotContainsUserIdPathParameter(event);
 }
 
 function callerUserCanChangeThePassword( callerUser, event ) {
@@ -59,7 +55,7 @@ function getUserByUsername( username ) {
         .catch(error => reject(error));
     }
     catch ( exception ) {
-      throw new Error(`[getUserByUsername] ${exception.message}`);
+      throw new Error(`[getUserByUsername] ${ exception.message }`);
     }
   });
 }
@@ -76,7 +72,7 @@ function getUserGroups( username ) {
         .catch(error => reject(error));
     }
     catch ( exception ) {
-      throw new Error(`[getUserGroups] ${exception.message}`);
+      throw new Error(`[getUserGroups] ${ exception.message }`);
     }
   });
 }
@@ -94,7 +90,7 @@ function changeUserPassword( username, newPassword ) {
         .catch(error => reject(error));
     }
     catch ( exception ) {
-      throw new Error(`[changeUserPassword] ${exception.message}`);
+      throw new Error(`[changeUserPassword] ${ exception.message }`);
     }
   });
 }
@@ -107,16 +103,11 @@ function removeUserFromGroup( username, group ) {
         Username: username,
         GroupName: group
       };
-      console.log(`Deleting ${group}`);
       Cognito.adminRemoveUserFromGroup(params).promise()
-        .then(() => console.log(`Deleted ${group}`))
-        .catch(error => {
-          console.log(error);
-          reject(error)
-        });
+        .catch(error => reject(error));
     }
     catch ( exception ) {
-      throw new Error(`[changeUserPassword] ${exception.message}`);
+      throw new Error(`[changeUserPassword] ${ exception.message }`);
     }
   });
 }
@@ -130,11 +121,10 @@ function addUserToGroup( username, group ) {
         GroupName: group
       };
       Cognito.adminAddUserToGroup(params).promise()
-        .then(() => console.log(`Added ${group}`))
         .catch(error => reject(error));
     }
     catch ( exception ) {
-      throw new Error(`[addUserToGroup] ${exception.message}`);
+      throw new Error(`[addUserToGroup] ${ exception.message }`);
     }
   });
 }
@@ -156,13 +146,14 @@ async function changeUsersGroups( username, groups ) {
 module.exports.handler = async event => {
   return new Promise(async ( resolve, reject ) => {
 
-    if ( requestNotHasNecessaryData(event) ) {
+    const requestBody = JSON.parse(event.body);
+
+    if ( requestNotContainsUserIdPathParameter(event) || requestBodyIsEmpty(requestBody) ) {
       resolve(Utils.BadRequest());
     }
 
-    const requestBody = JSON.parse(event.body);
     const requestedUserUsername = event.pathParameters.id;
-    const callerUsername = event.requestContext.authorizer.claims['cognito:username'];
+    const callerUsername = event.requestContext.authorizer.claims[ 'cognito:username' ];
 
     try {
 
@@ -179,7 +170,7 @@ module.exports.handler = async event => {
       resolve(Utils.Ok());
     }
     catch ( exception ) {
-      console.log(`[main] ${exception.message}`);
+      console.log(`[main] ${ exception.message }`);
       reject(exception)
     }
   });
