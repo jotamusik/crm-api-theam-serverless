@@ -27,12 +27,12 @@ function requestNotContainsCognitoAccessToken( event ) {
   return _.isNil(event.headers.CognitoAccessToken);
 }
 
-function requestNotContainsUserIdPathParameters( event ) {
+function requestNotContainsUserIdPathParameter( event ) {
   return _.isNil(event.pathParameters.id);
 }
 
 function requestNotHasNecessaryData( event ) {
-  return requestNotContainsCognitoAccessToken(event) || requestNotContainsUserIdPathParameters(event);
+  return requestNotContainsCognitoAccessToken(event) || requestNotContainsUserIdPathParameter(event);
 }
 
 function callerUserCanChangeThePassword( callerUser, event ) {
@@ -47,7 +47,7 @@ function getGroupsToAdd( actualGroups, requestedGroups ) {
   return requestedGroups.filter(group => !actualGroups.includes(group));
 }
 
-function getUserByToken( AccessToken ) {
+function getUserByAccessToken( AccessToken ) {
   return new Promise(( resolve, reject ) => {
     try {
       Cognito.getUser({ AccessToken }).promise()
@@ -55,7 +55,7 @@ function getUserByToken( AccessToken ) {
         .catch(error => reject(error));
     }
     catch ( exception ) {
-      throw new Error(`[getUserInfo] ${exception.message}`);
+      throw new Error(`[getUserByAccessToken] ${exception.message}`);
     }
   });
 }
@@ -130,7 +130,7 @@ function addUserToGroup( username, group ) {
         .catch(error => reject(error));
     }
     catch ( exception ) {
-      throw new Error(`[changeUserPassword] ${exception.message}`);
+      throw new Error(`[addUserToGroup] ${exception.message}`);
     }
   });
 }
@@ -161,7 +161,7 @@ module.exports.handler = async event => {
 
     try {
 
-      let callerUser = await getUserByToken(event.headers.CognitoAccessToken);
+      let callerUser = await getUserByAccessToken(event.headers.CognitoAccessToken);
 
       if ( callerUserCanChangeThePassword(callerUser, event) && requestBodyContainsPassword(requestBody) ) {
         changeUserPassword(requestedUserUsername, requestBody.password);
