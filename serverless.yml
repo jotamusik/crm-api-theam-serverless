@@ -112,6 +112,22 @@ functions:
             authorizerId:
               Ref: apiGatewayAuthorizer
 
+  deleteUser:
+    handler: users/deleteUser.handler
+    memorySize: 128
+    events:
+      - http:
+          path: users/{id}
+          method: DELETE
+          request:
+            parameters:
+              paths:
+                id: true
+          authorizer:
+            type: COGNITO_USER_POOLS
+            authorizerId:
+              Ref: apiGatewayAuthorizer
+
   getAllCustomers:
     handler: customers/getAllCustomers.handler
     memorySize: 128
