@@ -1,45 +1,49 @@
 'use strict';
 
-const Utils = require('../utils/utils');
-const AWS = require('aws-sdk');
-const s3 = new AWS.S3();
+const Response = require('../lib/Response');
+const S3 = require("../lib/S3");
 const _ = require('lodash/lang');
 
-function inputDataIsNotValid( event ) {
-  return _.isNil(event.pathParameters.id) || _.isNil(event.queryStringParameters.operation) ||
-    ( event.queryStringParameters.operation !== 'getObject' && event.queryStringParameters.operation !== 'putObject' );
+function operationIsNotAllowed( event ) {
+  return event.queryStringParameters.operation !== 'getObject' && event.queryStringParameters.operation !== 'putObject';
+}
+
+function requestNotContainsCustomerIdPathParameter( event ) {
+  return _.isNil(event.pathParameters.id);
+}
+
+function requestNotContainsSignedUrlOperation( event ) {
+  return _.isNil(event.queryStringParameters.operation);
+}
+
+function requestDataIsNotValid( event ) {
+  return requestNotContainsCustomerIdPathParameter(event) ||
+    requestNotContainsSignedUrlOperation(event) ||
+    operationIsNotAllowed(event);
 }
 
 module.exports.handler = async event => {
 
-  return new Promise(( resolve, reject ) => {
+  return new Promise(async ( resolve, reject ) => {
 
-    if ( inputDataIsNotValid(event) ) {
-      resolve(Utils.BadRequest());
+    if ( requestDataIsNotValid(event) ) {
+      resolve(Response.BadRequest());
     }
 
     const customerId = event.pathParameters.id;
     const operation = event.queryStringParameters.operation;
 
-    let s3Params = {
-      Bucket: 'customerprofileimages',
-      Key: 'api/uploads/customerProfiles/' + customerId
-    };
-
-    if ( operation === 'getObject' ) {
-      s3.headObject(s3Params).promise()
-        .then(() => {
-          s3Params.Expires = 3600;
-          let profileImage = s3.getSignedUrl(operation, s3Params);
-          resolve(Utils.Ok({ profileImageUrl: profileImage }));
-        })
-        .catch(() => resolve(Utils.ResourceNotFound()));
+    try {
+      let profileImageSignedUrl = await S3.generateSignedUrl(customerId, operation);
+      if ( _.isNil(profileImageSignedUrl) ) {
+        resolve(Response.ResourceNotFound());
+      } else {
+        resolve(Response.Ok({ profileImageSignedUrl }));
+      }
     }
-
-    if ( operation === 'putObject' ) {
-      s3Params.Expires = 3600;
-      let profileImage = s3.getSignedUrl(operation, s3Params);
-      resolve(Utils.Ok({ profileImageUrl: profileImage }));
+    catch ( exception ) {
+      console.error(`[main] ${ exception.message }`);
+      reject(exception)
     }
   });
 };

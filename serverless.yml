@@ -1,5 +1,16 @@
 service: crm-theam-serverless-api
 
+custom:
+  customerProfileImageBucket: 'customerprofileimages'
+  customerProfileImagePathPrefix: 'api/uploads/customerProfiles/'
+  signedUrlExpirationTime: 3600
+  userPoolId: 'eu-west-2_TithjXJyJ'
+  clientId: '351sd83rj8pff8nuqbtjc69n3t'
+  authFlow: 'ADMIN_NO_SRP_AUTH'
+  defaultUserGroup: 'users'
+  customerTableName: 'customers'
+  customerTableRegion: ${self:provider.region}
+
 provider:
   name: aws
   runtime: nodejs10.x
@@ -26,18 +37,17 @@ provider:
       Resource:
         - { "Fn::GetAtt": ["userPool", "Arn" ] }
 
-# you can define service wide environment variables here
-#  environment:
-#    variable1: value1
+  environment:
+    CUSTOMER_PROFILE_IMAGE_BUCKET: ${self:custom.customerProfileImageBucket}
+    CUSTOMER_PROFILE_IMAGE_PATH_PREFIX: ${self:custom.customerProfileImagePathPrefix}
+    SIGNED_URL_EXPIRATION_TIME: ${self:custom.signedUrlExpirationTime}
+    USER_POOL_ID: ${self:custom.userPoolId}
+    CLIENT_ID: ${self:custom.clientId}
+    AUTH_FLOW: ${self:custom.authFlow}
+    DEFAULT_USER_GROUP: ${self:custom.defaultUserGroup}
+    CUSTOMER_TABLE_NAME: ${self:custom.customerTableName}
+    CUSTOMER_TABLE_REGION: ${self:custom.customerTableRegion}
 
-# you can add packaging information here
-#package:
-#  include:
-#    - include-me.js
-#    - include-me-dir/**
-#  exclude:
-#    - exclude-me.js
-#    - exclude-me-dir/**
 
 functions:
   login:
@@ -218,17 +228,12 @@ functions:
             authorizerId:
               Ref: apiGatewayAuthorizer
 
-#    Define function environment variables here
-#    environment:
-#      variable2: value2
-
-# you can add CloudFormation resource templates here
 resources:
   Resources:
     uploadBucket:
       Type: AWS::S3::Bucket
       Properties:
-        BucketName: customerprofileimages
+        BucketName: ${self:custom.customerProfileImageBucket}
     customerTable:
       Type: AWS::DynamoDB::Table
       Properties:
@@ -257,7 +262,7 @@ resources:
         UserPoolId:
           Ref: userPool
         ExplicitAuthFlows:
-          - ADMIN_NO_SRP_AUTH
+          - ${self:custom.authFlow}
         GenerateSecret: false
     apiGatewayAuthorizer:
       Type: AWS::ApiGateway::Authorizer

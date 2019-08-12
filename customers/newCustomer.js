@@ -1,47 +1,36 @@
 'use strict';
 
-const Utils = require('../utils/utils');
-const uuidv4 = require('uuid/v4');
-const AWS = require('aws-sdk');
-const docClient = new AWS.DynamoDB.DocumentClient({ region: 'eu-west-2' });
+const Response = require('../lib/Response');
+const DynamoDB = require("../lib/DynamoDB");
+const Auth = require("../lib/Auth");
 const _ = require('lodash/lang');
 
 
 function requestBodyNotContainsNeededData( requestBody ) {
-
   return _.isNil(requestBody.customerName) || _.isNil(requestBody.customerSurname);
-}
-
-function checkEventInputData( event, resolve ) {
-  const requestBody = JSON.parse(event.body);
-
-  if ( requestBodyNotContainsNeededData(requestBody) ) {
-    resolve(Utils.BadRequest());
-  }
 }
 
 module.exports.handler = async event => {
 
-  return new Promise(( resolve, reject ) => {
-
-    checkEventInputData(event, resolve);
+  return new Promise(async ( resolve, reject ) => {
 
     const requestBody = JSON.parse(event.body);
 
-    let generatedCustomerId = uuidv4();
+    if ( requestBodyNotContainsNeededData(requestBody) ) {
+      resolve(Response.BadRequest());
+    }
 
-    let params = {
-      Item: {
-        customerId: generatedCustomerId.toString(),
-        customerName: requestBody.customerName,
-        customerSurname: requestBody.customerSurname
-      },
-      TableName: "customers",
-      ReturnValues: 'NONE'
-    };
+    const name = requestBody.customerName,
+      surname = requestBody.customerSurname,
+      createdUser = Auth.getCaller(event);
 
-    docClient.put(params).promise()
-      .then(() => resolve(Utils.Ok()))    // ToDo: Send the created customer ?
-      .catch(error => reject(error));
+    try {
+      await DynamoDB.createCustomer({ name, surname, createdUser });
+      resolve(Response.Ok());
+    }
+    catch ( exception ) {
+      console.error(`[main] ${ exception.message }`);
+      reject(exception)
+    }
   });
 };

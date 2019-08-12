@@ -1,31 +1,31 @@
 'use strict';
 
-const Utils = require('../utils/utils');
-const AWS = require('aws-sdk');
+const Response = require('../lib/Response');
+const DynamoDB = require('../lib/DynamoDB');
 const _ = require('lodash/lang');
-const docClient = new AWS.DynamoDB.DocumentClient({ region: 'eu-west-2' });
 
-function inputDataIsNotValid( event ) {
-  return _.isNil(event.pathParameter.id);
+function requestNotContainsCustomerIdPathParameter( event ) {
+  return _.isNil(event.pathParameters.id);
 }
+
 
 module.exports.handler = async event => {
 
-  return new Promise(( resolve, reject ) => {
+  return new Promise(async ( resolve, reject ) => {
 
-    if ( inputDataIsNotValid(event) ) {
-      resolve(Utils.BadRequest());
+    if ( requestNotContainsCustomerIdPathParameter(event) ) {
+      resolve(Response.BadRequest());
     }
 
-    let params = {
-      TableName: 'customers',
-      Key: {
-        customerId: event.pathParameters.id
-      }
-    };
+    const id = event.pathParameters.id;
 
-    docClient.delete(params).promise()
-      .then(() => resolve(Utils.Ok()))
-      .catch(error => reject(error));
+    try {
+      await DynamoDB.deleteCustomer(id);
+      resolve(Response.Ok());
+    }
+    catch ( exception ) {
+      console.error(`[main] ${ exception.message }`);
+      reject(exception)
+    }
   });
 };

@@ -1,36 +1,34 @@
 'use strict';
 
-const Utils = require('../utils/utils');
-const AWS = require('aws-sdk');
-const docClient = new AWS.DynamoDB.DocumentClient({ region: 'eu-west-2' });
+const Response = require('../lib/Response');
+const DynamoDB = require('../lib/DynamoDB');
 const _ = require('lodash/lang');
 
-function inputDataIsNotValid( event ) {
+function requestNotContainsCustomerIdPathParameter( event ) {
   return _.isNil(event.pathParameters.id);
 }
 
 module.exports.handler = async event => {
 
-  return new Promise(( resolve, reject ) => {
+  return new Promise(async ( resolve, reject ) => {
 
-    if ( inputDataIsNotValid(event) ) {
-      resolve(Utils.BadRequest());
+    if ( requestNotContainsCustomerIdPathParameter(event) ) {
+      resolve(Response.BadRequest());
     }
 
-    let params = {
-      TableName: 'customers',
-      Key: {
-        customerId: event.pathParameters.id
-      }
-    };
+    const id = event.pathParameters.id;
 
-    docClient.get(params).promise()
-      .then(( dbData ) => {
-        if ( _.isNil(dbData.Item) ) {
-          resolve(Utils.ResourceNotFound());
-        }
-        resolve(Utils.Ok(dbData.Item))
-      })
-      .catch(error => reject(error));
+    try {
+      let customer = await DynamoDB.getCustomerById(id);
+      if ( _.isNil(customer.Item) ) {
+        resolve(Response.ResourceNotFound());
+      } else {
+        resolve(Response.Ok(customer.Item));
+      }
+    }
+    catch ( exception ) {
+      console.error(`[main] ${ exception.message }`);
+      reject(exception)
+    }
   });
 };
