@@ -1,4 +1,5 @@
 # CRM REST API with serverless framework
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/c3a9794ac0d94fb3816336bbc655d3a8)](https://www.codacy.com/manual/jotamusik/crm-api-theam-serverless?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=jotamusik/crm-api-theam-serverless&amp;utm_campaign=Badge_Grade)
 This is a Rest API implemented with [Serverless Framework](https://serverless.com/) using [AWS](https://aws.amazon.com/) as a cloud computing service provider
 
 ## Requirements for the API:
