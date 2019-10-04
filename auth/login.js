@@ -11,21 +11,23 @@ function requestBodyNotContainsNeededData( requestBody ) {
 
 module.exports.handler = async event => {
   return new Promise(async ( resolve, reject ) => {
-    const requestBody = JSON.parse(event.body);
+    const requestBody = event.body;
 
     if ( requestBodyNotContainsNeededData(requestBody) ) {
       resolve(Response.BadRequest());
     }
 
     const username = requestBody.username,
-      password = requestBody.password;
+        password = requestBody.password;
 
     try {
       let loginData = await Cognito.login({ username, password });
       if ( _.isNil(loginData.Unauthorized) ) {
         resolve(Response.Ok(loginData.body, loginData.headers));
       }
-      resolve(Response.Unauthorized());
+      else {
+        resolve(Response.Unauthorized());
+      }
     }
     catch ( exception ) {
       console.error(`[main] ${ exception.message }`);
