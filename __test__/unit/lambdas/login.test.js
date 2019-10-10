@@ -1,6 +1,6 @@
-const Cognito = require('../../lib/Cognito');
-const login = require('../../auth/login').handler;
-const Response = require('../../lib/Response');
+const Cognito = require('../../../lib/Cognito');
+const login = require('../../../auth/login').handler;
+const Response = require('../../../lib/Response');
 
 jest.mock('../../lib/Cognito');
 
