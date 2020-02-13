@@ -13,5 +13,9 @@
         "aws-sdk": "^2.498.0",
         "lodash": "^4.17.15",
         "uuid": "^3.3.2"
+    },
+    "devDependencies": {
+        "@types/aws-lambda": "",
+        "@types/jest": ""
     }
 }
